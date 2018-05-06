@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/leaflet.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.0/js/bootstrap.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.0/css/bootstrap.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+<script src="colorbrewer.js"></script>
+<script src="data/ChplSchema-Empall.js"></script>
+<script src="data/ChplSchema-SADonationMean.js"></script>
+<script src="data/ChplSchema-SADonationMedian.js"></script>
+<script src="data/ChplSchema-SADonationPct.js"></script>
+<script src="data/ChplSchema-SDLT-ResTransLA.js"></script>
+<script src="data/ChplSchema-SPISelfMean.js"></script>
+<script src="data/ChplSchema-SPISelfMedian.js"></script>
+<script src="data/ChplSchema-SPIEmpMedian.js"></script>
+	
+<style>
+html, body, #container {
+  height: 100%;
+  overflow: hidden;
+  width: 100%;
+}
+body {
+  /* height of .navbar, customize with @navbar-height variable */
+  padding-top: 50px;
+}
+
+.navbar {
+  min-height: 50px;
+  background: teal;
+  color: white;
+  font-size: 32px;
+  font-weight: bold;
+}
+#sidebar {
+  float: left;
+  height: 100%;
+  min-width: 250px;
+  width: 20%;
+  padding: 10px;
+  background: whitesmoke;
+}
+
+#sidebar-heading #sidebar-contents {
+    background: red;
+	color: black;
+}
+
+button.link { background:none;border:none; text-align:left;}
+button.link:hover { font-weight: bold; }
+
+#mapid {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  height: 100%;
+  width: auto;
+}
+.cssTooltip {font-size: 14px;
+               font-weight: bold; }
+
+  .legend {line-height: 18px;
+           color: #000; }
+
+  .info {padding: 6px 8px;
+         font: 14px/16px Helvetica, sans-serif;
+         font-weight: bold;
+         background: rgba(255,255,255,0.8);
+         box-shadow: 0 0 15px rgba(0,0,0,0.2);
+         border-radius: 5px; } 
+
+  .legend i {width: 28px;
+             height: 14px;
+             float: left;
+             margin-right: 8px;
+             opacity: 0.8; }
+  
+  .notes {width: 400px;
+          opacity: 0.9; }		 
+</style>
+</head>
+
+ <body>
+  <nav class="navbar navbar-expand-md navbar-dark bg-teal fixed-top">
+    <a class="navbar-brand" href="#">HMRC Geographical Statistics</a>
+     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+     </button>
+  </nav>
+  
+  <div id="container">
+    <div id="sidebar">
+         <div id="sidebar-heading">
+            <h5>Publications</h5>
+         </div>
+	   
+        <div id="sidebar-contents">
+	     <div class="accordion" id="accordion">
+          <div class="card">
+           <div class="card-header" id="headingOne">
+           <h5 class="mb-0">
+           <button class="btn btn-link collapsed" type="button" onclick="Draw(ChplSchema_EmpAll)">
+             Employment Allowance Take-up
+           </button>
+           </h5>
+           </div>
+          </div>
+		  
+          <div class="card">
+           <div class="card-header" id="headingTwo">
+           <h5 class="mb-0">
+           <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+             Charitable donations
+           </button>
+           </h5>
+           </div>
+           <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+            <div class="card-body">
+             <a href=# onclick="Draw(ChplSchema_SADonationPct)">% declaring a donation</a><br>
+		     <a href=# onclick="Draw(ChplSchema_SADonationMean)">Average value of donations</a><br>
+		     <a href=# onclick="Draw(ChplSchema_SADonationMedian)">Median value of donations</a>
+            </div>
+           </div>
+          </div>
+		  
+          <div class="card">
+           <div class="card-header" id="headingThree">
+            <h5 class="mb-0">
+            <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+              Stamp Duty Land Tax
+            </button>
+            </h5>
+           </div>
+           <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
+            <div class="card-body">
+             <a href=# onclick="Draw(ChplSchema_SDLT_ResTranLA)">Residential transactions</a>
+            </div>
+           </div>
+          </div>
+		  
+		  <div class="card">
+           <div class="card-header" id="heading4">
+            <h5 class="mb-0">
+            <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapse4" aria-expanded="false" aria-controls="collapse4">
+              Personal Incomes
+            </button>
+            </h5>
+           </div>
+           <div id="collapse4" class="collapse" aria-labelledby="heading4" data-parent="#accordion">
+            <div class="card-body">
+              <a href=# onclick="Draw(ChplSchema_SPISelfMean)">Self employment income : mean</a><br>
+		      <a href=# onclick="Draw(ChplSchema_SPISelfMedian)">Self employment income : median</a><br>
+		      <a href=# onclick="Draw(ChplSchema_SPIEmpMedian)">Employment income : median</a>
+            </div>
+           </div>
+          </div>
+         </div>
+		</div>
+		
+		<div id="sidebar-notes"></div>
+    </div>
+	
+    <div id="mapid"></div>
+  </div>
+	
+<script>
+	
+var map = new L.Map('mapid', { center: new L.LatLng(55.5, -4.0), zoomSnap: 0.5, zoom: 5.5, scrollWheelZoom: false });
+map.zoomControl.setPosition('bottomright');
+map.attributionControl
+    .setPrefix('')
+    .addAttribution('Contains National Statistics and Ordnance Survey data. © Crown copyright and database right 2018');
+
+// Optional Tile Layer	
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map); 
+
+//Code to convert TopoJson to GeoJson
+L.TopoJSON = L.GeoJSON.extend({ 
+                  addData: function(jsonData) {   
+                           if (jsonData.type === "Topology") {
+                               for (key in jsonData.objects) {
+                                    geojson = topojson.feature(jsonData, jsonData.objects[key]);
+                                    L.GeoJSON.prototype.addData.call(this, geojson);
+    }}   
+                           else {
+                                    L.GeoJSON.prototype.addData.call(this, jsonData);
+}}});
+
+//Initialise controls/layers - must be outside function to be global
+var legend = L.control({position: 'topright'});
+var notes = L.control({position: 'bottomleft',collapsed:true});
+var controlLayers = L.control.layers([],[],{collapsed:false, position: 'topleft'});
+var shpLayer = new L.TopoJSON();
+var rgnLayer = new L.TopoJSON();
+
+
+function Draw(ChplSchema) {
+// Remove existing controls from the map/html.
+if (legend) { map.removeControl(legend); }
+if (notes) { map.removeControl(notes); }
+if (controlLayers) { map.removeControl(controlLayers); }
+if (shpLayer) { map.removeControl(shpLayer); }
+if (rgnLayer) { map.removeControl(rgnLayer); }
+
+// Reset controls/layers
+legend = L.control({position: 'topright'});
+notes = L.control({position: 'bottomleft'});
+controlLayers = L.control.layers([],[],{collapsed:false, position: 'topleft'});
+shpLayer = new L.TopoJSON();
+//rgnLayer = new L.TopoJSON();
+
+// Imports boundary data and uses it in a function that sets its style/properties
+if (ChplSchema.shape=="constituency") { var shp1 = 'https://raw.githubusercontent.com/kierandriscoll/UK-Topojson/master/Electoral/Westminster_Constituencies_Dec16_Gen_Clip_UK.json'; }
+ else if (ChplSchema.shape=="local authority") { var shp1 = 'https://raw.githubusercontent.com/kierandriscoll/UK-Topojson/master/Local-Authorities/Local_Auths_Dec16_Gen_Clip_UK.json'; }
+  else if (ChplSchema.shape=="ward") { var shp1 = 'https://raw.githubusercontent.com/kierandriscoll/UK-Topojson/master/Electoral/Wards_Dec15_Gen_Clip_GB.json';}
+   else if (ChplSchema.shape=="msoa") { var shp1 = 'https://raw.githubusercontent.com/kierandriscoll/UK-Topojson/master/Census/MSOA_Dec11_Gen_Clip_EandW.json';}
+    else if (ChplSchema.shape=="region") { var shp1 = 'https://raw.githubusercontent.com/kierandriscoll/UK-Topojson/master/Regions/Regions_Jan18_Gen_Clip_UK.json';}
+
+var shp2 = 'https://raw.githubusercontent.com/kierandriscoll/UK-Topojson/master/Regions/Regions_Jan18_Gen_Clip_UK.json';
+
+var colnames = Object.keys(ChplSchema.data[0]);
+var seriesnames = colnames.slice(2);
+
+controlLayers.addTo(map);
+
+ // Automatically creates layers based on number of columns in the data
+$.getJSON(shp1, function(topodata) { for (var i = 0; i < seriesnames.length; i++) {
+                                       var shpLayer = new L.TopoJSON(topodata); //shpLayer.addData(topodata);
+                                       controlLayers.addBaseLayer(shpLayer, seriesnames[i]);
+                                       shpLayer.eachLayer(handleLayer1, col_for_stat=seriesnames[i]);
+                                       if (i == 0) {shpLayer.addTo(map);} }
+                                    });
+ 
+
+$.getJSON(shp2, function(topodata) {  rgnLayer = new L.TopoJSON(topodata, {interactive: false});//rgnLayer.addData(topodata);
+                                      //controlLayers.addOverlay(rgnLayer, 'Regions');
+                                      rgnLayer.eachLayer(handleLayer2);
+									  rgnLayer.addTo(map);
+                                      map.on("baselayerchange", function (event) {  rgnLayer.bringToFront(); });
+                                    });
+
+ // Creates ONS code lookup table
+var mapLookup = d3.map();
+ChplSchema.data.forEach( function(d) { mapLookup.set(Object.values(d)[0], d);  });
+      
+// Function chooses colour based on data value (like IF..THEN..ELSE)
+
+var mypalette = colorbrewer[ChplSchema.binColors][ChplSchema.bins.length].slice();
+
+ function getColor(d) {
+  for (i = ChplSchema.bins.length - 1; i >=0; --i) {
+    if ( d >= ChplSchema.bins[i]) { return mypalette[ i ]; }
+  }
+  return 'grey';
+}
+
+var nfmt = d3.format(ChplSchema.nFormat);
+
+// Set the style of the boundary data layer & the tooltip
+function handleLayer1(layer) {
+    
+    var areaname = layer.feature.properties[ChplSchema.onsName]; // Area Name
+    var areacode = layer.feature.properties[ChplSchema.onsCode]; // Area ONS code
+    
+    layer.setStyle({ fillColor : getColor(mapLookup.get(areacode)[col_for_stat]),
+                     fillOpacity: 0.8,
+                     color: '#101010' ,
+                     weight:0.5,
+                     opacity: 1 });
+    
+    layer.bindTooltip( areaname + ' <br/> ' + areacode + ' <br/> '
+                       + ChplSchema.toolTipText + nfmt(mapLookup.get(areacode)[col_for_stat])
+                      , {className: 'cssTooltip', sticky: true, direction: 'right', offset: [20, 0]}
+                     );
+
+    layer.on({ mouseover : enterLayer,
+               mouseout: leaveLayer  });
+			   
+}
+
+function enterLayer(){  this.setStyle({ weight: 3, color: 'black', fillOpacity: 0 }); }
+function leaveLayer(){  this.setStyle({ weight: 0.5, color: '#101010', fillOpacity: 0.8 }); }
+
+function handleLayer2(layer) {
+    layer.setStyle({ fillColor : 'white',
+                     fillOpacity: 0,
+                     color: 'black',
+                     weight: 1,
+                     opacity: 1 });
+}
+
+ // Add legend
+legend.onAdd = function (map) {
+                 var div = L.DomUtil.create('div', 'info legend');
+                 var labels = [];
+                 div.innerHTML += '<b>' + ChplSchema.legendTitle + '</b><br>'
+                    for (var i = 0; i < ChplSchema.bins.length; i++) {
+                         div.innerHTML += '<i style="background:' + getColor(ChplSchema.bins[i] + 0.001) + '"></i> '
+                         +  nfmt(ChplSchema.bins[i]) + (ChplSchema.bins[i + 1] + 0.001 ? ' to ' + nfmt(ChplSchema.bins[i + 1])
+ 						 + '<br>' : ' +');
+                    }
+                 return div;
+};
+
+legend.addTo(map);
+
+ // Add Notes box
+notes.onAdd = function (map) {
+                 var div = L.DomUtil.create('div', 'info notes');
+                 var labels = [];
+                 div.innerHTML += '<b>' + "Information about these statistics" + '</b><br><br>'
+                               +  ChplSchema.notes + '<br><br>'
+							   +  '<a href="' + ChplSchema.website  + '">' + ChplSchema.website + '</a>' ;
+                 return div;
+};
+notes.addTo(map);
+
+//Add any extra Notes and website links
+var dNotes = document.getElementById('notes');
+//sidebar-notes.innerHTML += ChplSchema.notes;
+
+var dWebsite = document.getElementById('website');
+//sidebar-notes.innerHTML += '<a href="' + ChplSchema.website  + '">' + ChplSchema.website + '</a>';
+
+} //End of Draw function
+</script>
+</body>
+</html>
