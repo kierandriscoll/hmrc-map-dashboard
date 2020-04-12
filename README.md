@@ -1,3 +1,3 @@
-# mapsite
+# HMRC Map Dashboard Concept
 
-Automatically rendered [webpage](https://kierandriscoll.github.io/mapsite/choroplethmapsite.html) for the map site
+Rendered at: https://kierandriscoll.github.io/hmrc-map-dashboard/
